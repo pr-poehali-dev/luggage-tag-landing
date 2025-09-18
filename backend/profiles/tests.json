@@ -1,0 +1,47 @@
+{
+  "tests": [
+    {
+      "name": "Create new profile",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "fullName": "Иван Иванов",
+        "phone": "+7 (900) 123-45-67",
+        "telegram": "@test_user",
+        "email": "test@example.com"
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "qrCodeId": "string",
+        "fullName": "string",
+        "phone": "string",
+        "telegram": "string",
+        "email": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get profile by QR code",
+      "method": "GET",
+      "path": "/QR12345678",
+      "expectedStatus": 404,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Handle missing required fields",
+      "method": "POST", 
+      "path": "/",
+      "body": {
+        "telegram": "@test_user"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -3,20 +3,71 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
+import QRCode from 'react-qr-code';
+import { useToast } from '@/hooks/use-toast';
+
+interface GeneratedProfile {
+  id: string;
+  qrCodeId: string;
+  fullName: string;
+  phone: string;
+  telegram?: string;
+  email?: string;
+  createdAt: string;
+}
 
 const Index = () => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
     telegram: '',
     email: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [generatedProfile, setGeneratedProfile] = useState<GeneratedProfile | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Регистрация QR-бирки:', formData);
+    setIsSubmitting(true);
+    
+    try {
+      // Симуляция API вызова для демонстрации
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const mockProfile: GeneratedProfile = {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        qrCodeId: 'QR' + Math.random().toString(36).substr(2, 8).toUpperCase(),
+        fullName: formData.fullName,
+        phone: formData.phone,
+        telegram: formData.telegram,
+        email: formData.email,
+        createdAt: new Date().toISOString()
+      };
+      
+      setGeneratedProfile(mockProfile);
+      toast({
+        title: "QR-бирка создана!",
+        description: `Ваш код: ${mockProfile.qrCodeId}`,
+      });
+      
+      // Сброс формы
+      setFormData({
+        fullName: '',
+        phone: '',
+        telegram: '',
+        email: ''
+      });
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось создать QR-бирку",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -64,11 +115,20 @@ const Index = () => {
                 Никогда больше не потеряйте свой чемодан! Цифровая бирка с QR-кодом поможет вернуть багаж к владельцу быстро и безопасно.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="bg-travel-navy hover:bg-travel-navy/90 text-white px-8 py-4 text-lg font-montserrat">
+                <Button 
+                  size="lg" 
+                  className="bg-travel-navy hover:bg-travel-navy/90 text-white px-8 py-4 text-lg font-montserrat"
+                  onClick={() => document.getElementById('registration-form')?.scrollIntoView({ behavior: 'smooth' })}
+                >
                   <Icon name="QrCode" size={20} className="mr-2" />
                   Создать QR-бирку
                 </Button>
-                <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-travel-orange px-8 py-4 text-lg">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="border-white text-white hover:bg-white hover:text-travel-orange px-8 py-4 text-lg"
+                  onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+                >
                   <Icon name="Play" size={20} className="mr-2" />
                   Как это работает
                 </Button>
@@ -93,7 +153,7 @@ const Index = () => {
       </section>
 
       {/* Registration Form */}
-      <section className="py-20 bg-white/10 backdrop-blur-md">
+      <section id="registration-form" className="py-20 bg-white/10 backdrop-blur-md">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-12">
@@ -179,9 +239,10 @@ const Index = () => {
                     type="submit" 
                     className="w-full bg-travel-orange hover:bg-travel-orange/90 text-white py-4 text-lg font-montserrat"
                     size="lg"
+                    disabled={isSubmitting}
                   >
                     <Icon name="QrCode" size={20} className="mr-2" />
-                    Создать QR-бирку
+                    {isSubmitting ? 'Создаю...' : 'Создать QR-бирку'}
                   </Button>
                 </form>
               </CardContent>
@@ -189,6 +250,81 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Generated QR Code Section */}
+      {generatedProfile && (
+        <section className="py-20 bg-white/5 backdrop-blur-sm">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto text-center">
+              <h3 className="text-4xl font-montserrat font-bold text-white mb-8">
+                Ваша QR-бирка готова! 🎉
+              </h3>
+              
+              <Card className="bg-white/95 backdrop-blur-sm shadow-2xl border-0 p-8">
+                <div className="grid lg:grid-cols-2 gap-8 items-center">
+                  <div className="text-left">
+                    <h4 className="text-2xl font-montserrat font-bold text-travel-navy mb-4">
+                      {generatedProfile.fullName}
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <Icon name="Phone" size={20} className="text-travel-orange" />
+                        <span className="font-open-sans">{generatedProfile.phone}</span>
+                      </div>
+                      {generatedProfile.telegram && (
+                        <div className="flex items-center space-x-3">
+                          <Icon name="MessageCircle" size={20} className="text-travel-orange" />
+                          <span className="font-open-sans">{generatedProfile.telegram}</span>
+                        </div>
+                      )}
+                      {generatedProfile.email && (
+                        <div className="flex items-center space-x-3">
+                          <Icon name="Mail" size={20} className="text-travel-orange" />
+                          <span className="font-open-sans">{generatedProfile.email}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center space-x-3 mt-4">
+                        <Icon name="Hash" size={20} className="text-travel-blue" />
+                        <span className="font-open-sans font-bold">{generatedProfile.qrCodeId}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col items-center">
+                    <div className="bg-white p-6 rounded-2xl shadow-lg mb-4">
+                      <QRCode
+                        value={`${window.location.origin}/profile/${generatedProfile.qrCodeId}`}
+                        size={200}
+                        style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                      />
+                    </div>
+                    <p className="text-sm text-travel-navy font-open-sans text-center">
+                      Сохраните или распечатайте этот QR-код
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button 
+                    onClick={() => window.print()} 
+                    className="bg-travel-blue hover:bg-travel-blue/90"
+                  >
+                    <Icon name="Printer" size={20} className="mr-2" />
+                    Распечатать
+                  </Button>
+                  <Button 
+                    onClick={() => setGeneratedProfile(null)}
+                    variant="outline"
+                    className="border-travel-orange text-travel-orange hover:bg-travel-orange hover:text-white"
+                  >
+                    Создать еще одну
+                  </Button>
+                </div>
+              </Card>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* How It Works Section */}
       <section id="how-it-works" className="py-20 bg-white/5 backdrop-blur-sm">
